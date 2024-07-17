@@ -7,7 +7,7 @@ local generatePixelsFromImage = require("utils.generatePixelsFromImage")
 
 
 
-local pixelsFlat
+local pixels
 local pixels2D
 local palette
 
@@ -37,29 +37,28 @@ end
 local function createText()
     local myfont = love.graphics.newFont(pixelSize - 2)
 
-    print(Inspect(palette))
+
     canvas:renderTo(function()
-        love.graphics.clear()
         for y, row in ipairs(pixels2D) do
             for x, pixel in ipairs(row) do
-                -- this is not always 5, its between 1 and 10
                 local myindex = indexOf(palette, pixel.color)
-                -- print(type(myindex))
-                if myindex ~= 5 then
-                    -- prints like 1000s of times
-                    -- print("not 5")
-                end
-                x = x - 1
-                y = y - 1
-                -- but it prints all strings as "5"
                 love.graphics.setColor(0, 0, 0)
 
+                local newX = x - 1
+                local newY = y - 1
 
-                -- prints 1000s of times
-                -- print(myindex)
+                local textWidth = myfont:getWidth(tostring(myindex))
+                local textHeight = myfont:getHeight()
+
+
+
+                if x == 0 then
+                    print("hi")
+                end
+
                 -- now no number is beeing rendere???
-                -- love.graphics.printf(tostring(myindex), myfont, x * pixelSize, y * pixelSize, pixelSize, "center")
-                love.graphics.print(tostring(myindex), x * pixelSize, y * pixelSize)
+                love.graphics.printf(tostring(myindex), myfont, newX * pixelSize, newY * pixelSize, pixelSize, "center")
+                -- love.graphics.print(tostring(myindex), x * pixelSize, y * pixelSize)
             end
         end
         love.graphics.setColor(1, 1, 1)
@@ -71,11 +70,16 @@ function love.load()
     imgData = love.image.newImageData("assets/sprites/us.jpg")
     canvas = love.graphics.newCanvas(imgData:getWidth(), imgData:getHeight())
 
-    pixelsFlat, pixels2D, palette = generatePixelsFromImage(imgData, pixelSize, 10)
+    pixels, pixels2D, palette = generatePixelsFromImage(imgData, pixelSize, 10)
+    print(#pixels)
 
-
-    for index, pixel in ipairs(pixelsFlat) do
-        imgData:setPixel(pixel.x, pixel.y, pixel.color.r, pixel.color.g, pixel.color.b)
+    for index, pixel in ipairs(pixels) do
+        for w = 0, pixelSize - 1 do
+            for h = 0, pixelSize - 1 do
+                imgData:setPixel(pixel.x * pixelSize + w, pixel.y * pixelSize + h, pixel.color.r, pixel.color.g,
+                    pixel.color.b)
+            end
+        end
     end
     image = love.graphics.newImage(imgData)
     love.window.setMode(image:getWidth() * 2, image:getHeight() * 1.5)
@@ -124,6 +128,9 @@ function love.update(dt)
         local x, y = love.mouse.getPosition()
         local localX = math.floor(x / pixelSize)
         local localY = math.floor(y / pixelSize)
+        if x < 0 or y < 0 or x > image:getWidth() or y > image:getHeight() then
+            return
+        end
         local localPrevMouseX = math.floor(prevMousePosX / pixelSize)
         local localPrevMouseY = math.floor(prevMousePosY / pixelSize)
         for i = 0, pixelSize - 1 do
@@ -140,10 +147,6 @@ function love.update(dt)
     end
 end
 
-function loadfile()
-    local p = bitser.loadLoveFile("game.dat")
-end
-
 function love.draw()
     love.graphics.draw(image, 0, 0)
     love.graphics.draw(canvas, 0, 0)
@@ -153,7 +156,7 @@ function love.draw()
 end
 
 function love.mousepressed(x, y, button)
-    loadfile()
+
 end
 
 -- K-means algorithm

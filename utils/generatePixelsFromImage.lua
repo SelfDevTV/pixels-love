@@ -23,7 +23,9 @@ local function generatePixelsFromImage(imageData, pixelSize, totalColors)
     -- Get the color of each pixel in the image and create 10 x 10 pixel blocks
 
 
-
+    print("w of image: ", imageData:getWidth())
+    print("h of image: ", imageData:getHeight())
+    print("total pixels of image: ", imageData:getWidth() * imageData:getHeight())
 
     for y = 0, w - 1, 1 do
         for x = 0, h - 1, 1 do
@@ -33,7 +35,8 @@ local function generatePixelsFromImage(imageData, pixelSize, totalColors)
         end
     end
 
-    print(pixelsFlat[1].color)
+    print("pixels before kmean: ", #pixelsFlat)
+    print("pixels times pixelsize: ", #pixelsFlat * pixelSize)
 
 
 
@@ -42,34 +45,30 @@ local function generatePixelsFromImage(imageData, pixelSize, totalColors)
     for i, px in ipairs(pixelsFlat) do
         local centroid = centroids[assignments[i]]
         px.color = color(centroid.r, centroid.g, centroid.b)
-        for y = 0, pixelSize - 1 do
-            for x = 0, pixelSize - 1 do
-                local newY = px.y * pixelSize + y
-                local newX = px.x * pixelSize + x
-                table.insert(pixels, pixel(newX, newY, px.color))
-            end
-        end
+        table.insert(pixels, px)
     end
+
+    print("pixels after kmeans", #pixels)
 
 
     local pixels2D = {}
 
     for i, px in ipairs(pixels) do
         -- Initialize the sub-table for this x-coordinate if it doesn't exist
-        if not pixels2D[px.x] then
-            pixels2D[px.x] = {}
+        if not pixels2D[px.x + 1] then
+            pixels2D[px.x + 1] = {}
         end
-
         -- Insert the pixel into the 2D table at the correct x and y position
         -- Note: This assumes .y values are sequential and start from 0 or 1. Adjust accordingly.
-        pixels2D[px.x][px.y] = px -- Storing just the color, but you can store the whole pixel object if needed
+        pixels2D[px.x + 1][px.y + 1] = px -- Storing just the color, but you can store the whole pixel object if needed
     end
 
+    print("pixels 2d one row", #pixels2D)
+    print("pixls2d one col", #pixels2D[1])
 
-    pixelsFlat = pixels
 
 
-    return pixelsFlat, pixels2D, centroids
+    return pixels, pixels2D, centroids
 end
 
 
