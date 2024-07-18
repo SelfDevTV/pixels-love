@@ -1,7 +1,8 @@
+local luminance = require "utils.luminance"
 local PalettePanel = Class {
     init = function(self, h, colors)
         self.h = h
-        self.y = love.graphics.getHeight()
+        self.y = love.graphics.getHeight() - self.h
         self.colors = colors
         self.selectedColor = 1
         Signal.emit("colorSelected", self.colors[self.selectedColor])
@@ -79,16 +80,26 @@ function PalettePanel:draw()
 
     local colorWidth = w / #self.colors
     for i, color in ipairs(self.colors) do
+        local luminance = luminance(color.r, color.g, color.b)
+
         love.graphics.setColor(color.r, color.g, color.b)
         if i == self.selectedColor then
             love.graphics.rectangle("fill", x + (i - 1) * colorWidth, self.y - 10, colorWidth, h)
-            love.graphics.setColor(1, 1, 1)
+            if luminance > 0.5 then
+                love.graphics.setColor(0, 0, 0)
+            else
+                love.graphics.setColor(1, 1, 1)
+            end
 
             love.graphics.printf(tostring(i), x + (i - 1) * colorWidth, self.y + self.h / 2 - font:getHeight() / 2 - 10,
                 colorWidth, "center")
         else
             love.graphics.rectangle("fill", x + (i - 1) * colorWidth, self.y, colorWidth, h)
-            love.graphics.setColor(1, 1, 1)
+            if luminance > 0.5 then
+                love.graphics.setColor(0, 0, 0)
+            else
+                love.graphics.setColor(1, 1, 1)
+            end
 
             love.graphics.printf(tostring(i), x + (i - 1) * colorWidth, self.y + self.h / 2 - font:getHeight() / 2,
                 colorWidth, "center")
