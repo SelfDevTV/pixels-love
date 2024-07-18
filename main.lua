@@ -1,160 +1,69 @@
 require("globals")
-local bitser = require("libs.bitser")
-local color = require("gameobjects.color")
 
-local PalettePanel = require("ui.palettePanel")
+local Color = require("gameobjects.color")
+local Pixel = require("gameobjects.pixel")
 
-local generatePixelsFromImage = require("utils.generatePixelsFromImage")
-
-
-local palettePanel
-local pixels
-local pixels2D
-local palette
-
-local c1 = color(1, 1, 1)
-local c2 = color(1, 1, 1)
-
+local imageData
 local image
-local imgData
-local newImgData
+local pixelCanvas
+local textCanvas
+
+local pixels = {}
+local pixelsChanged = {}
+
+local fpsFont = love.graphics.newFont(12)
+
+local pixelSize = 10
 
 local prevMousePosX = 0
 local prevMousePosY = 0
 
-local canvas
 local camera
 
-local myfont
-local fpsFont
-
-local drawingColor
-
-local pixelSize = 20
-local pixelScale = 3
-
-local numbersToDrawNext = {}
-
-local inputDisabled = true
-
-local zoom = 3
-
-local function cameraShake()
-    local orig_x, orig_y = camera:position()
-    Timer.during(.1, function()
-        print("shaking")
-        camera:lookAt(orig_x + math.random(-.1, -1), orig_y + math.random(-.1, .1))
-    end, function()
-        -- reset camera position
-        camera:lookAt(orig_x, orig_y)
-    end)
+local function createPixelsFromImage()
+    local w = math.floor(imageData:getWidth() / pixelSize)
+    local h = math.floor(imageData:getHeight() / pixelSize)
+    for x = 0, w - 1 do
+        local row = {}
+        for y = 0, h - 1 do
+            local r, g, b = imageData:getPixel(x * pixelSize, y * pixelSize)
+            local pixel = Pixel(x, y, Color(r, g, b))
+            table.insert(row, pixel)
+        end
+        table.insert(pixels, row)
+    end
 end
 
-local function indexOf(array, value)
-    for i, v in ipairs(array) do
-        if v == value then
-            return i
+local function drawInitialPixelCanvas(pixels)
+    love.graphics.setCanvas(pixelCanvas)
+
+    for x, row in ipairs(pixels) do
+        for y, p in ipairs(row) do
+            if p.x == 0 and p.y == 0 then
+                print("hi")
+            end
+            love.graphics.setColor(p.color.r, p.color.g, p.color.b)
+            love.graphics.points(p.x, p.y)
         end
     end
-    return nil
+    love.graphics.setCanvas()
 end
 
-local function luminance(r, g, b)
-    return 0.299 * r + 0.587 * g + 0.114 * b
-end
-
-
-
-
-local function renderTextToCanvas()
-    canvas:renderTo(function()
-        love.graphics.clear()
-        for x, row in ipairs(pixels2D) do
-            for y, pixel in ipairs(row) do
-                -- get luminance of pixel
-                local myindex = indexOf(palette, pixel.correctColor)
-                local luminance = luminance(pixel.color.r, pixel.color.g, pixel.color.b)
-                if luminance > 0.5 then
-                    love.graphics.setColor(0, 0, 0)
-                else
-                    love.graphics.setColor(1, 1, 1)
-                end
-
-                if not pixel.drawnCorrectly then
-                    love.graphics.printf(tostring(myindex), myfont, pixel.x * pixelSize * pixelScale,
-                        pixel.y * pixelSize * pixelScale, pixelSize * pixelScale,
-                        "center")
-                end
-                -- love.graphics.print(tostring(myindex), x * pixelSize, y * pixelSize)
-            end
+local function drawPixelsOnCanvas(p)
+    -- print(Inspect(p))
+    love.graphics.setCanvas(pixelCanvas)
+    for i, p in ipairs(p) do
+        if p.x == 0 and p.y == 0 then
+            print("hiho")
         end
-        love.graphics.setColor(1, 1, 1)
-    end)
-end
-
-
-function love.load()
-    love.window.setMode(800, 800)
-    myfont = love.graphics.newFont((pixelSize * pixelScale) / 1.2)
-    fpsFont = love.graphics.newFont(8)
-    love.graphics.setFont(myfont)
-    camera = Camera(0, 0)
-    imgData = love.image.newImageData("assets/sprites/person.jpg")
-    canvas = love.graphics.newCanvas(imgData:getWidth() * pixelScale, imgData:getHeight() * pixelScale)
-    canvas:setFilter("nearest", "nearest")
-
-    pixels, pixels2D, palette = generatePixelsFromImage(imgData, pixelSize, pixelScale, 9)
-    Signal.register("colorSelected", function(color)
-        drawingColor = color
-    end)
-    palettePanel = PalettePanel(50, palette)
-    print(love.graphics:getHeight())
-    Flux.to(palettePanel, .5, { y = love.graphics:getHeight() - 50 })
-
-
-
-    -- drawingColor = palette[2]
-
-    -- create function that gets luminance of a color
-
-    newImgData = love.image.newImageData(imgData:getWidth() * pixelScale, imgData:getHeight() * pixelScale)
-
-    for index, pixel in ipairs(pixels) do
-        for w = 0, pixelSize * pixelScale - 1 do
-            for h = 0, pixelSize * pixelScale - 1 do
-                newImgData:setPixel(pixel.x * pixelSize * pixelScale + w, pixel.y * pixelSize * pixelScale + h,
-                    pixel.color.r, pixel.color.g,
-                    pixel.color.b)
-            end
-        end
+        love.graphics.setColor(p.color.r, p.color.g, p.color.b)
+        love.graphics.points(p.x, p.y)
     end
-    image = love.graphics.newImage(newImgData)
-    -- make the filter on image nearest
-    image:setFilter("nearest", "nearest")
-
-    camera:lookAt(image:getWidth() / 2, image:getHeight() / 2)
-    Flux.to(camera, 1, { scale = 0.4 }):ease("backout"):oncomplete(function()
-        inputDisabled = false
-    end)
-
-
-
-
-    -- local r = bitser.register("pixels", pixels)
-
-
-
-
-    love.graphics.setBackgroundColor(.9, .8, .9)
-
-    -- bitser.dumpLoveFile("game.dat", r)
-
-
-    -- Gamestate.registerEvents()
-    -- Gamestate.switch(GameStates.PlayState)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setCanvas()
 end
 
-local function plotText(x0, y0, x1, y1)
+local function plotLine(x0, y0, x1, y1)
     local dx = math.abs(x1 - x0)
     local sx = x0 < x1 and 1 or -1
     local dy = -math.abs(y1 - y0)
@@ -162,9 +71,10 @@ local function plotText(x0, y0, x1, y1)
     local err = dx + dy
     local e2
     while true do
-        local pixel = pixels2D[x0 + 1][y0 + 1]
-        pixel:setColor(drawingColor)
-        table.insert(numbersToDrawNext, pixel)
+        local pixel = pixels[x0][y0]
+        pixel.color = Color(1, 0, 0)
+        table.insert(pixelsChanged, pixel)
+
         if x0 == x1 and y0 == y1 then
             break
         end
@@ -180,136 +90,59 @@ local function plotText(x0, y0, x1, y1)
     end
 end
 
-local function plotLine(x0, y0, x1, y1)
-    local dx = math.abs(x1 - x0)
-    local sx = x0 < x1 and (pixelSize * pixelScale) or -(pixelSize * pixelScale)
-    local dy = -math.abs(y1 - y0)
-    local sy = y0 < y1 and (pixelSize * pixelScale) or -(pixelSize * pixelScale)
-    local err = dx + dy
-    local e2
-    while true do
-        newImgData:setPixel(x0, y0, drawingColor.r, drawingColor.g, drawingColor.b)
-        if x0 == x1 and y0 == y1 then
-            break
-        end
-        e2 = 2 * err
-        if e2 >= dy then
-            err = err + dy
-            x0 = x0 + sx
-        end
-        if e2 <= dx then
-            err = err + dx
-            y0 = y0 + sy
-        end
-    end
+
+function love.load()
+    love.window.setMode(800, 800)
+    love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
+
+
+
+    imageData = love.image.newImageData("assets/sprites/Man.png")
+    camera = Camera(0, 0)
+    -- camera:lookAt(imageData:getWidth() / 2, imageData:getHeight() / 2)
+    camera:zoomTo(1)
+
+    pixelCanvas = love.graphics.newCanvas(imageData:getWidth(), imageData:getHeight())
+    textCanvas = love.graphics.newCanvas(imageData:getWidth(), imageData:getHeight())
+    pixelCanvas:setFilter("nearest", "nearest")
+    textCanvas:setFilter("nearest", "nearest")
+    createPixelsFromImage()
+    drawInitialPixelCanvas(pixels)
 end
 
-function love.update(dt)
-    Flux.update(dt)
-    Timer.update(dt)
-
-    palettePanel:update(dt)
-    if inputDisabled then
-        return
-    end
-    if love.keyboard.isDown("a") then
-        camera:move(-300 * dt * pixelScale, 0)
-    end
-    if love.keyboard.isDown("d") then
-        camera:move(300 * dt * pixelScale, 0)
-    end
-    if love.keyboard.isDown("w") then
-        camera:move(0, -300 * dt * pixelScale)
-    end
-    if love.keyboard.isDown("s") then
-        camera:move(0, 300 * dt * pixelScale)
-    end
-    local pixelTotalSize = pixelSize * pixelScale
+function love.update()
     if love.mouse.isDown(1) then
         local x, y = camera:worldCoords(love.mouse.getPosition())
-        local localX = math.floor(x / pixelTotalSize)
-        local localY = math.floor(y / pixelTotalSize)
-        if localX < 0 or localY < 0 or localX > #pixels2D - 1 or localY > #pixels2D[1] - 1 then
-            return
-        end
-        -- cameraShake()
-        local localPrevMouseX = math.floor(prevMousePosX / pixelTotalSize)
-        local localPrevMouseY = math.floor(prevMousePosY / pixelTotalSize)
+        local localX = math.floor(x / pixelSize)
+        local localY = math.floor(y / pixelSize)
 
-        local pixel = pixels2D[localPrevMouseX + 1][localPrevMouseY + 1]
+        -- local pixel = pixels[localX + 2][localY + 2]
+        -- pixel.color = Color(1, 0, 0)
+        -- table.insert(pixelsChanged, pixel)
+        local localPrevMouseX = math.floor(prevMousePosX / pixelSize)
+        local localPrevMouseY = math.floor(prevMousePosY / pixelSize)
+        plotLine(localPrevMouseX, localPrevMouseY, localX, localY)
 
-        pixel:setColor(drawingColor)
-
-
-
-        for i = 0, pixelSize * pixelScale - 1 do
-            for j = 0, pixelSize * pixelScale - 1 do
-                -- imgData:setPixel(localX * pixelSize + i, localY * pixelSize + j, 0, 0, 0)
-                plotLine(localPrevMouseX * pixelSize * pixelScale + i, localPrevMouseY * pixelSize * pixelScale + j,
-                    localX * pixelSize * pixelScale + i,
-                    localY * pixelSize * pixelScale + j)
-            end
-        end
-
-        plotText(localPrevMouseX, localPrevMouseY, localX, localY)
-
-        -- renderTextAtPixel(pixel)
 
         prevMousePosX, prevMousePosY = camera:worldCoords(love.mouse.getPosition())
     else
-        local x, y = camera:worldCoords(love.mouse.getPosition())
-        local localX = math.floor(x / pixelTotalSize)
-        local localY = math.floor(y / pixelTotalSize)
-
-        if localX < 0 or localY < 0 or localX > #pixels2D - 1 or localY > #pixels2D[1] - 1 then
-            return
-        end
-
         prevMousePosX, prevMousePosY = camera:worldCoords(love.mouse.getPosition())
-    end
-end
-
--- mouse wheel will zoom in and out of the image
-function love.wheelmoved(x, y)
-    if y > 0 then
-        camera:zoom(1.1)
-    elseif y < 0 then
-        camera:zoom(0.9)
     end
 end
 
 function love.draw()
-    renderTextToCanvas()
-
-    camera:attach()
-    image:replacePixels(newImgData)
-    love.graphics.draw(image, 0, 0)
-    love.graphics.draw(canvas, 0, 0)
-    camera:detach()
-    palettePanel:draw()
-    love.graphics.setColor(1, 0, 0)
-
-    -- draw fps
-    love.graphics.setFont(fpsFont)
-    love.graphics.print("Current FPS: " .. tostring(love.timer.getFPS()), 10, 10)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.setFont(myfont)
-end
-
-function love.keypressed(key)
-    if inputDisabled then
-        return
+    if #pixelsChanged > 0 then
+        drawPixelsOnCanvas(pixelsChanged)
+        pixelsChanged = {}
     end
-    palettePanel:keypressed(key)
+    camera:attach()
+    love.graphics.draw(pixelCanvas, 0, 0, 0, pixelSize, pixelSize)
+
+    camera:detach()
+
+    -- draw fps counter top left
+    love.graphics.setFont(fpsFont)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), 10, 10)
 end
-
-function love.mousepressed(x, y, btn)
-    if inputDisabled then
-        return
-    end
-    palettePanel:mousepressed(x, y, btn)
-
-    -- shake the camera for one second
-end
-
--- K-means algorithm

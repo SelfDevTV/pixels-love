@@ -4,7 +4,7 @@
 ---@field color Color
 ---@field correctColor Color
 
-local pixel = Class {
+local Pixel = Class {
     init = function(self, x, y, color)
         self.x = x
         self.y = y
@@ -17,7 +17,7 @@ local pixel = Class {
 }
 
 
-function pixel:setColor(color)
+function Pixel:setColor(color)
     self.color = color
     if self.color == self.correctColor then
         self.drawnCorrectly = true
@@ -26,4 +26,4 @@ function pixel:setColor(color)
     end
 end
 
-return pixel
+return Pixel
