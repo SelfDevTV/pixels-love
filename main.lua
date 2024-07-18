@@ -39,9 +39,6 @@ local function drawInitialPixelCanvas(pixels)
 
     for x, row in ipairs(pixels) do
         for y, p in ipairs(row) do
-            if p.x == 0 and p.y == 0 then
-                print("hi")
-            end
             love.graphics.setColor(p.color.r, p.color.g, p.color.b)
             love.graphics.points(p.x, p.y)
         end
@@ -53,9 +50,6 @@ local function drawPixelsOnCanvas(p)
     -- print(Inspect(p))
     love.graphics.setCanvas(pixelCanvas)
     for i, p in ipairs(p) do
-        if p.x == 0 and p.y == 0 then
-            print("hiho")
-        end
         love.graphics.setColor(p.color.r, p.color.g, p.color.b)
         love.graphics.points(p.x, p.y)
     end
