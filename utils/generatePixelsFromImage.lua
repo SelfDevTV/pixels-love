@@ -10,34 +10,29 @@ local kmeans = require "utils.kmeans"
 ---@return table
 ---@return table
 ---@return table
-local function generatePixelsFromImage(imageData, pixelSize, totalColors)
+local function generatePixelsFromImage(imageData, pixelSize, pixelScale, totalColors)
     local pixels = {}
     local pixelsFlat = {}
     local pixelSize = pixelSize or 10
     local totalColors = totalColors or 10
-    print(imageData:getWidth() * imageData:getHeight())
+    print(imageData:getWidth(), imageData:getHeight())
 
     local w = math.floor(imageData:getWidth() / pixelSize)
     local h = math.floor(imageData:getHeight() / pixelSize)
 
+
     -- Get the color of each pixel in the image and create 10 x 10 pixel blocks
 
+    for x = 0, w - 1, 1 do
+        for y = 0, h - 1, 1 do
+            -- local maxX = math.min(x * pixelSize, w - 1)
+            -- local maxY = math.min(y * pixelSize, h - 1)
 
-    print("w of image: ", imageData:getWidth())
-    print("h of image: ", imageData:getHeight())
-    print("total pixels of image: ", imageData:getWidth() * imageData:getHeight())
-
-    for y = 0, w - 1, 1 do
-        for x = 0, h - 1, 1 do
-            local r, g, b = imageData:getPixel(x * pixelSize, y * pixelSize)
+            local r, g, b = imageData:getPixel(x, y)
             -- Create a block of pixelSize x pixelSize of the same color
             table.insert(pixelsFlat, pixel(x, y, color(r, g, b)))
         end
     end
-
-    print("pixels before kmean: ", #pixelsFlat)
-    print("pixels times pixelsize: ", #pixelsFlat * pixelSize)
-
 
 
     local centroids, assignments = kmeans(pixelsFlat, totalColors)
@@ -58,6 +53,9 @@ local function generatePixelsFromImage(imageData, pixelSize, totalColors)
         if not pixels2D[px.x + 1] then
             pixels2D[px.x + 1] = {}
         end
+
+        px.correctColor = px.color
+        px.color = color(1, 1, 1)
         -- Insert the pixel into the 2D table at the correct x and y position
         -- Note: This assumes .y values are sequential and start from 0 or 1. Adjust accordingly.
         pixels2D[px.x + 1][px.y + 1] = px -- Storing just the color, but you can store the whole pixel object if needed

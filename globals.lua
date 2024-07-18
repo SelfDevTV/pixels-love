@@ -3,6 +3,8 @@ Timer = require "libs.timer"
 Flux = require "libs.flux"
 Gamestate = require "libs.gamestate"
 Inspect = require "libs.inspect"
+Camera = require "libs.camera"
+Signal = require "libs.signal"
 
 -- Game States
 require "states.init"

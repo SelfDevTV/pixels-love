@@ -7,7 +7,7 @@ local color = require "gameobjects.color"
 ---@param pixelSize number
 ---@param totalColors number
 ---@return table
-local function generateColorsFromImage(imageData, pixelSize, totalColors)
+local function generateColorsFromImage(imageData, pixelSize, pixelScale, totalColors)
     local colors = {}
     local pixelSize = pixelSize or 10
     local totalColors = totalColors or 10
