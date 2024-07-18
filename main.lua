@@ -65,7 +65,8 @@ local function plotLine(x0, y0, x1, y1)
     local err = dx + dy
     local e2
     while true do
-        local pixel = pixels[x0][y0]
+        -- +1 to to account for 0 based indexing to 1 based indexing
+        local pixel = pixels[x0 + 1][y0 + 1]
         pixel.color = Color(1, 0, 0)
         table.insert(pixelsChanged, pixel)
 
