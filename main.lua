@@ -8,16 +8,19 @@ end
 
 require("globals")
 
-local PalettePanel        = require "ui.palettePanel"
+local PalettePanel = require "ui.palettePanel"
 
-local Color               = require("gameobjects.color")
-local Pixel               = require("gameobjects.pixel")
-local Controls            = require("controls")
+local Color        = require("gameobjects.color")
+local Pixel        = require("gameobjects.pixel")
+local Controls     = require("controls")
 
 local imageData
 local image
+
 local pixelCanvas
+local pixelBorderCanvas
 local textCanvas
+
 
 local pixels              = {}
 local pixelsChanged       = {}
@@ -27,9 +30,10 @@ local currentDrawingColor = Color(1, 0, 0)
 local palettePanel
 
 local pixelSize           = 20
+local pixelScale          = 2
 
 local fpsFont             = love.graphics.newFont(12)
-local myFont              = love.graphics.newFont("assets/fonts/joystix monospace.otf", pixelSize - 3)
+local myFont              = love.graphics.newFont("assets/fonts/joystix monospace.otf", pixelSize - 4)
 
 local prevMousePosX       = 0
 local prevMousePosY       = 0
@@ -81,6 +85,36 @@ local function drawPixelsOnCanvas(pixels)
     for i, p in ipairs(pixels) do
         love.graphics.setColor(p.color.r, p.color.g, p.color.b)
         love.graphics.points(p.x, p.y)
+    end
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setCanvas()
+end
+
+local function drawInitialPixelBorderOnCanvas(pixels)
+    love.graphics.setCanvas(pixelBorderCanvas)
+
+    for x, row in ipairs(pixels) do
+        for y, p in ipairs(row) do
+            if not p.drawnCorrectly then
+                love.graphics.setColor(0, 0, 0)
+                love.graphics.rectangle("line", (p.x - 0.5) * pixelSize, (p.y - 0.5) * pixelSize, pixelSize, pixelSize)
+            end
+        end
+    end
+    love.graphics.setCanvas()
+end
+
+local function drawPixelBorderOnCanvas(pixels)
+    love.graphics.setCanvas(pixelBorderCanvas)
+    for i, p in ipairs(pixels) do
+        if not p.drawnCorrectly then
+            love.graphics.setColor(0, 0, 0)
+            love.graphics.rectangle("line", (p.x - 0.5) * pixelSize, (p.y - 0.5) * pixelSize, pixelSize, pixelSize)
+        else
+            love.graphics.setScissor((p.x - 0.5) * pixelSize, (p.y - 0.5) * pixelSize, pixelSize, pixelSize)
+            love.graphics.clear()
+            love.graphics.setScissor()
+        end
     end
     love.graphics.setColor(1, 1, 1)
     love.graphics.setCanvas()
@@ -189,6 +223,7 @@ function love.load()
 
     pixelCanvas = love.graphics.newCanvas(imageData:getWidth(), imageData:getHeight())
     textCanvas = love.graphics.newCanvas(imageData:getWidth(), imageData:getHeight())
+    pixelBorderCanvas = love.graphics.newCanvas(imageData:getWidth(), imageData:getHeight())
 
     pixelCanvas:setFilter("nearest", "nearest")
     textCanvas:setFilter("nearest", "nearest")
@@ -203,6 +238,7 @@ function love.load()
     drawInitialTextOnCanvas(pixels)
     tempNum = tempNum + 1
     drawInitialPixelCanvas(pixels)
+    drawInitialPixelBorderOnCanvas(pixels)
 end
 
 function love.update(dt)
@@ -244,11 +280,13 @@ function love.draw()
     love.graphics.setColor(1, 1, 1)
     if #pixelsChanged > 0 then
         drawPixelsOnCanvas(pixelsChanged)
+        drawPixelBorderOnCanvas(pixelsChanged)
         drawTextOnCanvas(pixelsChanged)
         pixelsChanged = {}
     end
     camera:attach()
     love.graphics.draw(pixelCanvas, 0, 0, 0, pixelSize, pixelSize)
+    love.graphics.draw(pixelBorderCanvas, 0, 0)
     love.graphics.draw(textCanvas, 0, 0)
     camera:detach()
     palettePanel:draw()
