@@ -29,11 +29,12 @@ local currentDrawingColor = Color(1, 0, 0)
 
 local palettePanel
 
-local pixelSize           = 20
+local pixelSize           = 50
 local pixelScale          = 2
+local pixelScaledSize     = pixelSize * pixelScale
 
 local fpsFont             = love.graphics.newFont(12)
-local myFont              = love.graphics.newFont("assets/fonts/joystix monospace.otf", pixelSize - 4)
+local myFont              = love.graphics.newFont("assets/fonts/joystix monospace.otf", pixelSize + 2)
 
 local prevMousePosX       = 0
 local prevMousePosY       = 0
@@ -55,7 +56,7 @@ local function createPixelsFromImage()
         local row = {}
         for y = 0, h - 1 do
             local r, g, b = imageData:getPixel(x * pixelSize, y * pixelSize)
-            local pixel = Pixel(x + 0.5, y + 0.5, Color(1, 1, 1))
+            local pixel = Pixel(x, y, Color(1, 1, 1))
             pixel.correctColor = Color(r, g, b)
             table.insert(row, pixel)
         end
@@ -71,7 +72,9 @@ local function drawInitialPixelCanvas(pixels)
     for x, row in ipairs(pixels) do
         for y, p in ipairs(row) do
             love.graphics.setColor(p.color.r, p.color.g, p.color.b)
-            love.graphics.points(p.x, p.y)
+            -- love.graphics.points(p.x * pixelScaledSize, p.y * pixelScaledSize)
+            love.graphics.rectangle("fill", (p.x) * pixelScaledSize, (p.y) * pixelScaledSize, pixelScaledSize,
+                pixelScaledSize)
         end
     end
     love.graphics.setCanvas()
@@ -84,7 +87,8 @@ local function drawPixelsOnCanvas(pixels)
     love.graphics.setCanvas(pixelCanvas)
     for i, p in ipairs(pixels) do
         love.graphics.setColor(p.color.r, p.color.g, p.color.b)
-        love.graphics.points(p.x, p.y)
+        love.graphics.rectangle("fill", (p.x) * pixelScaledSize, (p.y) * pixelScaledSize, pixelScaledSize,
+            pixelScaledSize)
     end
     love.graphics.setColor(1, 1, 1)
     love.graphics.setCanvas()
@@ -92,31 +96,46 @@ end
 
 local function drawInitialPixelBorderOnCanvas(pixels)
     love.graphics.setCanvas(pixelBorderCanvas)
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.setLineWidth(2)
+    love.graphics.setLineStyle("rough")
+    love.graphics.clear()
 
     for x, row in ipairs(pixels) do
         for y, p in ipairs(row) do
             if not p.drawnCorrectly then
-                love.graphics.setColor(0, 0, 0)
-                love.graphics.rectangle("line", (p.x - 0.5) * pixelSize, (p.y - 0.5) * pixelSize, pixelSize, pixelSize)
+                love.graphics.rectangle("line", (p.x) * pixelScaledSize, (p.y) * pixelScaledSize,
+                    pixelScaledSize, pixelScaledSize)
             end
         end
     end
+
     love.graphics.setCanvas()
 end
 
 local function drawPixelBorderOnCanvas(pixels)
     love.graphics.setCanvas(pixelBorderCanvas)
+    love.graphics.setLineWidth(2)
+    love.graphics.setLineStyle("rough")
+
     for i, p in ipairs(pixels) do
         if not p.drawnCorrectly then
             love.graphics.setColor(0, 0, 0)
-            love.graphics.rectangle("line", (p.x - 0.5) * pixelSize, (p.y - 0.5) * pixelSize, pixelSize, pixelSize)
+
+            love.graphics.rectangle("line", (p.x) * pixelScaledSize,
+                (p.y) * pixelScaledSize,
+                pixelScaledSize,
+                pixelScaledSize)
         else
-            love.graphics.setScissor((p.x - 0.5) * pixelSize, (p.y - 0.5) * pixelSize, pixelSize, pixelSize)
+            love.graphics.setScissor((p.x) * pixelScaledSize, (p.y) * pixelScaledSize,
+                pixelScaledSize,
+                pixelScaledSize)
             love.graphics.clear()
             love.graphics.setScissor()
         end
     end
     love.graphics.setColor(1, 1, 1)
+
     love.graphics.setCanvas()
 end
 
@@ -136,8 +155,8 @@ local function drawInitialTextOnCanvas(pixels)
             end
 
             if not pixel.drawnCorrectly then
-                love.graphics.printf(tostring(myindex), myFont, (pixel.x - 0.5) * pixelSize,
-                    (pixel.y - 0.5) * pixelSize, pixelSize,
+                love.graphics.printf(tostring(myindex), myFont, (pixel.x) * pixelScaledSize,
+                    (pixel.y) * pixelScaledSize, pixelScaledSize,
                     "center")
             end
             -- love.graphics.print(tostring(myindex), x * pixelSize, y * pixelSize)
@@ -152,7 +171,8 @@ local function drawTextOnCanvas(pixels)
 
     for i, pixel in ipairs(pixels) do
         -- get luminance of pixel
-        love.graphics.setScissor((pixel.x - 0.5) * pixelSize, (pixel.y - 0.5) * pixelSize, pixelSize, pixelSize)
+        love.graphics.setScissor((pixel.x) * pixelScaledSize, (pixel.y) * pixelScaledSize, pixelScaledSize,
+            pixelScaledSize)
         love.graphics.clear()
         local myindex = indexOf(palette, pixel.correctColor)
         local luminance = luminance(pixel.color.r, pixel.color.g, pixel.color.b)
@@ -164,8 +184,8 @@ local function drawTextOnCanvas(pixels)
         end
 
         if not pixel.drawnCorrectly then
-            love.graphics.printf(tostring(myindex), myFont, (pixel.x - 0.5) * pixelSize,
-                (pixel.y - 0.5) * pixelSize, pixelSize,
+            love.graphics.printf(tostring(myindex), myFont, (pixel.x) * pixelScaledSize,
+                (pixel.y) * pixelScaledSize, pixelScaledSize,
                 "center")
         end
         love.graphics.setScissor()
@@ -221,9 +241,9 @@ function love.load()
 
     controls = Controls(camera)
 
-    pixelCanvas = love.graphics.newCanvas(imageData:getWidth(), imageData:getHeight())
-    textCanvas = love.graphics.newCanvas(imageData:getWidth(), imageData:getHeight())
-    pixelBorderCanvas = love.graphics.newCanvas(imageData:getWidth(), imageData:getHeight())
+    pixelCanvas = love.graphics.newCanvas(imageData:getWidth() * pixelScale, imageData:getHeight() * pixelScale)
+    textCanvas = love.graphics.newCanvas(imageData:getWidth() * pixelScale, imageData:getHeight() * pixelScale)
+    pixelBorderCanvas = love.graphics.newCanvas(imageData:getWidth() * pixelScale, imageData:getHeight() * pixelScale)
 
     pixelCanvas:setFilter("nearest", "nearest")
     textCanvas:setFilter("nearest", "nearest")
@@ -247,8 +267,8 @@ function love.update(dt)
     palettePanel:update(dt)
     if love.mouse.isDown(1) then
         local x, y = camera:worldCoords(love.mouse.getPosition())
-        local localX = math.floor(x / pixelSize)
-        local localY = math.floor(y / pixelSize)
+        local localX = math.floor(x / pixelScaledSize)
+        local localY = math.floor(y / pixelScaledSize)
 
         if localX < 0 or localX > #pixels - 1 or localY < 0 or localY > #pixels[1] - 1 then
             return
@@ -257,8 +277,8 @@ function love.update(dt)
         -- local pixel = pixels[localX + 2][localY + 2]
         -- pixel.color = Color(1, 0, 0)
         -- table.insert(pixelsChanged, pixel)
-        local localPrevMouseX = math.floor(prevMousePosX / pixelSize)
-        local localPrevMouseY = math.floor(prevMousePosY / pixelSize)
+        local localPrevMouseX = math.floor(prevMousePosX / pixelScaledSize)
+        local localPrevMouseY = math.floor(prevMousePosY / pixelScaledSize)
         plotLine(localPrevMouseX, localPrevMouseY, localX, localY)
 
 
@@ -267,8 +287,8 @@ function love.update(dt)
         prevMousePosX, prevMousePosY = camera:worldCoords(love.mouse.getPosition())
     else
         local x, y = camera:worldCoords(love.mouse.getPosition())
-        local localX = math.floor(x / pixelSize)
-        local localY = math.floor(y / pixelSize)
+        local localX = math.floor(x / pixelScaledSize)
+        local localY = math.floor(y / pixelScaledSize)
         if localX < 0 or localX > #pixels - 2 or localY < 0 or localY > #pixels[1] - 2 then
             return
         end
@@ -280,12 +300,12 @@ function love.draw()
     love.graphics.setColor(1, 1, 1)
     if #pixelsChanged > 0 then
         drawPixelsOnCanvas(pixelsChanged)
-        drawPixelBorderOnCanvas(pixelsChanged)
+        drawInitialPixelBorderOnCanvas(pixels)
         drawTextOnCanvas(pixelsChanged)
         pixelsChanged = {}
     end
     camera:attach()
-    love.graphics.draw(pixelCanvas, 0, 0, 0, pixelSize, pixelSize)
+    love.graphics.draw(pixelCanvas, 0, 0)
     love.graphics.draw(pixelBorderCanvas, 0, 0)
     love.graphics.draw(textCanvas, 0, 0)
     camera:detach()
