@@ -8,7 +8,7 @@ local PlayState = {
 }
 
 
-function PlayState:enter(camera)
+function PlayState:enter(prev, camera)
     self.drawing = Drawing(camera, "assets/sprites/Man.png")
     self.controls = Controls(camera)
 

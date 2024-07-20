@@ -1,9 +1,11 @@
+Gamestate = require "libs.gamestate"
 Class = require "libs.class"
 Timer = require "libs.timer"
 Flux = require "libs.flux"
-Gamestate = require "libs.gamestate"
-Inspect = require "libs.inspect"
 Camera = require "libs.camera"
+
+Inspect = require "libs.inspect"
+
 Signal = require "libs.signal"
 
 -- Game States
