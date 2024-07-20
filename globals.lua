@@ -11,5 +11,7 @@ require "states.init"
 
 -- Fonts
 Fonts = {
-    pixel = love.graphics.newFont("assets/fonts/joystix monospace.otf", 20)
+    pixel = love.graphics.newFont("assets/fonts/joystix monospace.otf", 20),
+
+
 }
