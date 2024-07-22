@@ -14,7 +14,9 @@ local Drawing               = Class {
         self.imageData       = love.image.newImageData(imageSrc)
         self.pixelsChanged   = {}
         self.camera          = camera
-        self.camera:lookAt(self.imageData:getWidth() / 2, self.imageData:getHeight() / 2)
+        self.camera:zoomTo(0.5)
+        self.camera:lookAt(self.imageData:getWidth() * self.pixelScale / 2,
+            self.imageData:getHeight() * self.pixelScale / 2)
         self.prevMousePosX       = 0
         self.prevMousePosY       = 0
         self.currentDrawingColor = Color(1, 0, 0)

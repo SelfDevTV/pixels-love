@@ -11,7 +11,7 @@ function MainMenuState:enter(old)
 
     local w, h = love.graphics.getDimensions()
 
-    menu = Menu(w / 2 - 400 / 2, 50, 400, 500)
+    menu = Menu(w / 2 - 400 / 2, 50, 400, 500, oldState)
 end
 
 function MainMenuState:update(dt)

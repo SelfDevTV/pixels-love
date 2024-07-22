@@ -30,8 +30,11 @@ function PalettePanel:mousepressed(x, y, button)
 end
 
 function PalettePanel:animateColorChange()
-    Flux.to(self, 0.1, { selectedColorBorderX = (self.selectedColor - 1) * (love.graphics.getWidth() / #self.colors) })
-        :ease("backinout")
+    -- Flux.to(self, 0.1, { selectedColorBorderX = (self.selectedColor - 1) * (love.graphics.getWidth() / #self.colors) })
+    --     :ease("backinout")
+
+
+    self.selectedColorBorderX = (self.selectedColor - 1) * (love.graphics.getWidth() / #self.colors)
 end
 
 -- pressing the numbers keys on the keyboard will select the correct color
@@ -85,8 +88,14 @@ function PalettePanel:draw()
     end
 
     -- draw the border around the selected color
-    love.graphics.setColor(.9, .6, .3)
-    love.graphics.setLineWidth(2)
+    local lum = luminance(self.colors[self.selectedColor].r, self.colors[self.selectedColor].g,
+        self.colors[self.selectedColor].b)
+    if lum > 0.5 then
+        love.graphics.setColor(0, 0, 0)
+    else
+        love.graphics.setColor(1, 1, 0)
+    end
+    love.graphics.setLineWidth(3)
     love.graphics.rectangle("line", self.selectedColorBorderX, self.y - 10, colorWidth, h + 10)
     love.graphics.setColor(1, 1, 1)
 end

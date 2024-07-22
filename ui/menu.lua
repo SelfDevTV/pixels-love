@@ -2,13 +2,14 @@ local Button = require("ui.button")
 local PlayState = require("states.PlayState")
 
 local Menu = Class {
-    init = function(self, x, y, w, h)
+    init = function(self, x, y, w, h, oldState)
         self.buttons = {}
         self.x = x
         self.y = y
         self.width = w
         self.height = h
         self:createButtons()
+        self.oldState = oldState
     end
 
 }
@@ -16,11 +17,11 @@ local Menu = Class {
 function Menu:createButtons()
     self.buttons = {
         Button(100, 100, 200, 50, "Play", function()
-                Gamestate.switch(PlayState)
+                Gamestate.switch(PlayState, self.oldState)
             end, { 1, 1, 1, 1 },
             { 1, .5, 0 }, Fonts.pixel),
         Button(100, 100, 200, 50, "About", function()
-                Gamestate.switch(PlayState)
+                Gamestate.switch(PlayState, self.oldState)
             end, { 1, 1, 1, 1 },
             { 1, .5, .5 }, Fonts.pixel),
 

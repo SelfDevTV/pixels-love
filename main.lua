@@ -13,16 +13,17 @@ local fpsFont = love.graphics.newFont(12)
 
 
 
-local camera
 
 
 
 function love.load()
-    love.window.setMode(800, 800)
+    local windowScale = love.window.getDPIScale()
+
+    local w, h = love.window.getDesktopDimensions()
+    love.window.setMode(w / 1.2 * windowScale, h / 1.2 * windowScale)
     love.graphics.setDefaultFilter("nearest", "nearest")
     love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
-    camera = Camera(0, 0)
-    Gamestate.switch(playstate, camera)
+    Gamestate.switch(playstate)
     Gamestate.registerEvents()
 end
 
@@ -48,6 +49,8 @@ function love.keypressed(key)
     if key == "f" then
         love.window.setFullscreen(not love.window.getFullscreen())
     end
+
+
 
     if key == "escape" then
         love.event.quit()
