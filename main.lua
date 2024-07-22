@@ -4,6 +4,7 @@ end
 
 require("globals")
 
+
 local playstate = require("states.PlayState")
 
 
@@ -15,13 +16,11 @@ local fpsFont = love.graphics.newFont(12)
 local camera
 
 
+
 function love.load()
     love.window.setMode(800, 800)
     love.graphics.setDefaultFilter("nearest", "nearest")
     love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
-
-
-
     camera = Camera(0, 0)
     Gamestate.switch(playstate, camera)
     Gamestate.registerEvents()
@@ -53,24 +52,6 @@ function love.keypressed(key)
     if key == "escape" then
         love.event.quit()
     end
-end
-
-function love.mousepressed(x, y, button)
-
-end
-
-function love.keyreleased(key)
-
-end
-
--- function that moves the camera by drag and middle mouse button click
-function love.mousemoved(x, y, dx, dy, istouch)
-
-end
-
--- function that zooms the camera by scrolling
-function love.wheelmoved(x, y)
-
 end
 
 local love_errorhandler = love.errorhandler

@@ -16,6 +16,8 @@ function PlayState:enter(prev, camera)
 end
 
 function PlayState:keypressed(key)
+    self.controls:keyPressed(key)
+    self.drawing:keypressed(key)
     if key == "escape" then
         Gamestate.switch(GameStates.MainMenuState)
     end
@@ -27,7 +29,19 @@ function PlayState:update(dt)
 end
 
 function PlayState:mousepressed(x, y, button)
+    self.drawing:mousepressed(x, y, button)
+end
 
+function PlayState:mousemoved(x, y, dx, dy, istouch)
+    self.controls:mouseMoved(x, y, dx, dy, istouch)
+end
+
+function PlayState:keyreleased(key)
+    self.controls:keyReleased(key)
+end
+
+function PlayState:wheelmoved(x, y)
+    self.controls:wheelMoved(x, y)
 end
 
 function PlayState:draw()

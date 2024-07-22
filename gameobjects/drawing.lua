@@ -40,7 +40,6 @@ local Drawing               = Class {
 }
 
 function Drawing:update(dt)
-    self.palettePanel:update(dt)
     self:updateDrawing()
 end
 

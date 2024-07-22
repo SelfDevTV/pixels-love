@@ -34,29 +34,6 @@ function PalettePanel:animateColorChange()
         :ease("backinout")
 end
 
-function PalettePanel:update(dt)
-    -- if not love.mouse.isDown(1) then
-    --     return
-    -- end
-    -- local x = 0
-    -- local y = self.y
-
-    -- local w = love.graphics.getWidth()
-    -- local h = self.h
-
-    -- local colorWidth = w / #self.colors
-    -- local mx, my = love.mouse.getPosition()
-    -- if my > y and my < y + h then
-    --     for i = 1, #self.colors do
-    --         if mx > x + (i - 1) * colorWidth and mx < x + i * colorWidth then
-    --             self.selectedColor = i
-    --             Signal.emit("colorSelected", self.colors[i])
-    --             break
-    --         end
-    --     end
-    -- end
-end
-
 -- pressing the numbers keys on the keyboard will select the correct color
 function PalettePanel:keypressed(key)
     if tonumber(key) and tonumber(key) > 0 and tonumber(key) <= #self.colors then
